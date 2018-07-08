@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias type="com.civildefense.dto.TraineeDTO" alias="TraineeDTO"/>
+		<typeAlias type="com.civildefense.dto.AnswerDTO" alias="AnswerDTO"/>
+		<typeAlias type="com.civildefense.dto.QuestionDTO" alias="QuestionDTO"/>
+		<typeAlias type="com.civildefense.dto.SurveyDTO" alias="SurveyDTO"/>
+		<typeAlias type="com.civildefense.dto.SurveyResponseDTO" alias="SurveyResponseDTO"/>
+		<typeAlias type="com.civildefense.dto.TraineeHasTrainDTO" alias="TraineeHasTrainDTO"/>
+		<typeAlias type="com.civildefense.dto.SigunguAdminDTO" alias="SigunguAdminDTO"/>
+		<typeAlias type="com.civildefense.dto.ZipcodeDTO" alias="ZipcodeDTO"/>
+		<typeAlias type="com.civildefense.dto.AnswerCountDTO" alias="AnswerCountDTO"/>
+		<typeAlias type="com.civildefense.dto.CompanyAdminDTO" alias="CompanyAdminDTO"/>
+	</typeAliases>
+</configuration>

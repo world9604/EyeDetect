@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="admin">
+
+	<delete id="deleteSigunguAdminByNo" parameterType="String">
+		<![CDATA[
+			DELETE 
+			FROM 
+				SIGUNGU_ADMIN
+			WHERE
+				NO = #{value}
+		]]>
+	</delete>
+	
+	<update id="updateSigunguPasswd" parameterType="hashMap">
+		<![CDATA[
+	        UPDATE 
+				SIGUNGU_ADMIN 
+			SET 
+				PASSWD = #{passwd}
+			WHERE 
+				NO = #{sigunguNo}
+	     ]]>
+	</update>
+	
+	<select id="selectSigunguAdminList" resultType="SigunguAdminDTO">
+		<![CDATA[
+			SELECT
+				NO,
+		        ID,
+		        PASSWD,
+		        ZIPCODE_NO,
+		        SURVEY_NO
+		    FROM
+				SIGUNGU_ADMIN
+		]]>
+	</select>
+	
+	<select id="selectSigunguAdminAndSurvey" resultType="hashMap">
+		<![CDATA[
+			SELECT
+				A.NO,
+				A.ID,
+				A.PASSWD,
+				A.ZIPCODE_NO,
+				A.SURVEY_NO,
+				START_DATE,
+				END_DATE,
+				SECRET_CODE,
+				SECRET_CODE_USE
+			FROM 
+				SURVEY S INNER JOIN SIGUNGU_ADMIN A
+			WHERE 
+				A.SURVEY_NO = S.NO;
+		]]>
+	</select>
+
+	<select id="selectSigunguAdmin" resultType="SigunguAdminDTO" parameterType="hashMap">
+		 <![CDATA[
+	        SELECT
+				NO,
+				ZIPCODE_NO,
+				ID,
+				SURVEY_NO
+			FROM 
+				SIGUNGU_ADMIN
+			WHERE
+				ID = #{ID} 
+			AND 
+				PASSWD = #{PASSWD}
+	     ]]>
+	</select>
+	
+	<select id="selectCompanyAdmin" resultType="CompanyAdminDTO" parameterType="hashMap">
+		 <![CDATA[
+	        SELECT
+				NO
+			FROM 
+				COMPANY_ADMIN
+			WHERE
+				ID = #{ID} 
+			AND 
+				PASSWD = #{PASSWD}
+	     ]]>
+	</select>
+	
+	<select id="selectSigunguAdminID" resultType="SigunguAdminDTO" parameterType="hashMap">
+		 <![CDATA[
+	        SELECT
+				NO
+			FROM 
+				SIGUNGU_ADMIN
+			WHERE
+				ID = #{id} 
+	     ]]>
+	</select>
+	
+	<insert id="insertSigunguAdmin" parameterType="hashMap">
+		 <![CDATA[
+	        INSERT INTO SIGUNGU_ADMIN
+	        (
+	        	ZIPCODE_NO,
+	        	SURVEY_NO,
+	        	ID,
+	        	PASSWD
+	        )
+			VALUES
+			(
+				#{zipcode},
+				#{survey_no},
+				#{id},
+				#{passwd}
+			)
+	     ]]>
+	</insert>
+
+</mapper>
