@@ -6,17 +6,19 @@
 	<welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
-    
+
+	<!-- Encoding Filter -->    
     <filter>
 	    <filter-name>encodingFilter</filter-name>
-	<filter-class>
+		<filter-class>
 	        org.springframework.web.filter.CharacterEncodingFilter
-	</filter-class>
-	<init-param>
-	    <param-name>encoding</param-name>
-	    <param-value>utf-8</param-value>
-	</init-param>
+		</filter-class>
+		<init-param>
+	    	<param-name>encoding</param-name>
+	    	<param-value>utf-8</param-value>
+		</init-param>
 	</filter>
+	
 	<filter-mapping>
 	    <filter-name>encodingFilter</filter-name>
 	<url-pattern>*.do</url-pattern>
@@ -66,6 +68,7 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
 	</servlet>
+	
 	<servlet-mapping>
 	        <servlet-name>action</servlet-name>
 	        <url-pattern>*.do</url-pattern>

@@ -6,8 +6,8 @@
      
     <bean id="dataSourceSpied" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://127.0.0.1:3306/civildefense?useSSL=false&amp;serverTimezone=UTC"/>
-        <property name="username" value="civiladmin"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/eyedetect?useSSL=false&amp;serverTimezone=UTC"/>
+        <property name="username" value="root"/>
         <property name="password" value="81355917a!!"/>
     </bean>
     

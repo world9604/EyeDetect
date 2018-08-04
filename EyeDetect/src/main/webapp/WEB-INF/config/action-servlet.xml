@@ -18,17 +18,28 @@
 	<context:component-scan base-package="com.hongbog.*" />
 	<resources mapping="/resources/**" location="/resources/" />
 
+	<!-- <mvc:annotation-driven>
+		<mvc:argument-resolvers>
+			<beans:bean class="com.hongbog.controller.CustomMapArgumentResolver"/>
+		</mvc:argument-resolvers>
+	</mvc:annotation-driven> -->
+
+	<mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <beans:bean id="loggerInterceptor" class="com.hongbog.util.LoggerInterceptor"></beans:bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
 	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
 	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<beans:property name="prefix" value="/WEB-INF/views/" />
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 
-	<mvc:interceptors>
-        <mvc:interceptor>
-            <mvc:mapping path="/**"/>
-            <beans:bean id="loggerInterceptor" class="first.common.logger.LoggerInterceptor"></beans:bean>
-        </mvc:interceptor>
-    </mvc:interceptors>
-	
+	<!-- <alias name="spring.RegularCommonsMultipartResolver" alias="multipartResolver" /> -->
+    <beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+ 		<beans:property name="maxUploadSize" value="268435456"/>
+	</beans:bean>
+ 	
 </beans:beans>
