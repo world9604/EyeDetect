@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.nio.file.Path;
@@ -43,10 +44,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.hongbog.dto.SensorDto;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 import com.hongbog.service.SensorService;
 import com.mysql.fabric.xmlrpc.base.Array;
@@ -58,6 +62,9 @@ import com.mysql.fabric.xmlrpc.base.Array;
 public class HomeController {
 	
 	private Logger log = Logger.getLogger(this.getClass());
+	
+	private static final String FOLDER_NAME = "eyeDetect";
+	private static final String EXT_NAME = "PNG";
 	
 	@Resource(name="sensorService")
 	private SensorService sensorService;
@@ -99,6 +106,7 @@ public class HomeController {
 	    return "home";
 	}*/
 	
+	
 	@RequestMapping(value = "/uploadImage.do", method = RequestMethod.POST)
 	public String uploadImage(@RequestParam("photo") MultipartFile file, 
 									@RequestParam("label") String label,
@@ -134,6 +142,55 @@ public class HomeController {
 	    return "success";
 	}
 	
+	
+	@RequestMapping(value = "/uploadData.do", method = RequestMethod.POST)
+	public String uploadData(@RequestParam("photo") MultipartFile file, 
+			@RequestParam("label") String label,
+			@RequestParam("roll") String roll,
+			@RequestParam("pitch") String pitch,
+			@RequestParam("yaw") String yaw,
+			@RequestParam("br") String br, Model model) {
+				
+		if(file != null) {
+			
+			log.debug("label : " + label);
+			log.debug("roll : " + roll);
+			log.debug("pitch : " + pitch);
+			log.debug("yaw : " + yaw);
+			log.debug("br : " + br);
+			
+			String imageSavePath = makePath(file.getName(), FOLDER_NAME, EXT_NAME);
+			log.debug("imageSavePath : " + imageSavePath);
+			
+			SensorDto sensorDto = new SensorDto(imageSavePath, label, roll, pitch, yaw, br);
+			
+			if(sensorDto != null) sensorService.insertSensor(sensorDto);
+			
+			try {
+				file.transferTo(new File(imageSavePath));
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+	    return "success";	 
+	}
+	
+	
+	private String makePath(String fileName, String dirName, String extName) {
+		
+		String path = "C:" + File.separator + dirName;
+		File file = new File(path);
+		file.mkdir();
+		
+		path += (File.separator + fileName + "." + extName);
+		return path;
+	}
+	
+	
 	/*@RequestMapping(value = "/writeImage.do", method = RequestMethod.GET)
 	public ModelAndView writeImage(Model model) {
 		
@@ -149,6 +206,7 @@ public class HomeController {
 		
 	    return mv;
 	}*/
+	
 	
 	@RequestMapping(value = "/showData.do", method = RequestMethod.GET)
 	public ModelAndView showData(Model model) {
@@ -324,4 +382,35 @@ public class HomeController {
 		    e.printStackTrace();
 		}
 	}
+	
+	
+	@RequestMapping(value = "/downloadAllJsonTree.do", method = RequestMethod.POST)
+	public void downloadAllJsonTree(HttpServletResponse response, HttpServletRequest request) {
+		
+		String ouputName = "sensorValues";
+		            
+		try {
+		    if (request.getHeader("User-Agent").indexOf("MSIE 5.5") > -1) {
+		        response.setHeader("Content-Disposition", "filename=" + ouputName + ".txt" + ";");
+		    } else {
+		        response.setHeader("Content-Disposition", "attachment; filename=" + ouputName + ".txt" + ";");
+		    }
+		    response.setHeader("Content-Transfer-Encoding", "binary");
+		    
+		    Gson gson = new Gson();
+		    
+		    ArrayList<SensorDto> sensors = (ArrayList<SensorDto>)sensorService.selectSensorList();
+		    
+		    String sensorsJson = gson.toJson(sensors);
+		    
+		    PrintWriter out = response.getWriter();
+
+		    out.write(sensorsJson);
+		    
+		} catch(Exception e) {
+		    e.printStackTrace();
+		}
+	}
+	
+	
 }

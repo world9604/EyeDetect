@@ -18,6 +18,7 @@
     	<parameter property="pitch" />
     	<parameter property="yaw" />
     	<parameter property="br" />
+    	<parameter property="imageSavePath" />
 	</parameterMap>
 	
 	<select id="selectSensorFromId" resultType="SensorDto">
@@ -42,7 +43,7 @@
 		 <![CDATA[
 	        INSERT INTO EYEDETECT.SENSOR
 	        (
-	        	IMAGEBYTEARRAY,
+	        	IMAGESAVEPATH,
 	        	LABEL,
 	        	ROLL,
 	        	PITCH,
@@ -52,7 +53,7 @@
 	        )
 			VALUES
 			(
-				#{imageByteArray},
+				#{imageSavePath},
 				#{label},
 				#{roll},
 				#{pitch},

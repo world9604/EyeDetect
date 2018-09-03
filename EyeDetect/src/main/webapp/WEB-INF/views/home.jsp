@@ -47,7 +47,7 @@
         <c:choose>
             <c:when test="${fn:length(sensors) > 0}">
                 <c:forEach items="${sensors}" var="sensor">
-                    <tr>
+                    <tr data="sensor">
                     	<td data="sensorId">${sensor.id}</td>
                      	<td data="img">
                      		<img data="${sensor.id}" src='data:image/png;base64,${sensor.encodedImage}' alt="image" />
@@ -119,8 +119,10 @@
             });
             
             $("#downloadAllSensor").on("click", function(e){ //센서값 전체 다운로드
+            	
             	e.preventDefault();
-            	fn_downloadAllZipJsonTxt();
+            	fn_downloadAllJsonTree();
+            	
             });
             
         });
@@ -142,13 +144,13 @@
 
         	a[0].click();
         	a.remove();
-       	}
+       	 }
          
          function fn_deleteAll(){
             var comSubmit = new ComSubmit();
             comSubmit.setUrl("<c:url value='/deleteAllData.do' />");
             comSubmit.submit();
-        }
+         }
          
          function fn_delete(obj){
             var comSubmit = new ComSubmit();
@@ -157,9 +159,9 @@
             comSubmit.submit();
          }
          
-         function fn_downloadAllZipImage(){
+         function fn_downloadAllJsonTree(){
              var comSubmit = new ComSubmit();
-             comSubmit.setUrl("<c:url value='/downloadImageZipFile.do' />");
+             comSubmit.setUrl("<c:url value='/downloadAllJsonTree.do' />");
              comSubmit.submit();
          }
          

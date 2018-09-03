@@ -13,8 +13,19 @@ public class SensorDto {
 	private String yaw;
 	private String br;
 	private String registerDate;
+	private String imageSavePath;
 	
 	private SensorDto() {}
+	
+	public SensorDto(String imageSavePath, String label, String roll, String pitch, String yaw, String br) {
+		super();
+		this.imageSavePath = imageSavePath;
+		this.label = label;
+		this.roll = roll;
+		this.pitch = pitch;
+		this.yaw = yaw;
+		this.br = br;
+	}
 	
 	public SensorDto(byte[] imageByteArray, String label, String roll, String pitch, String yaw, String br) {
 		super();
