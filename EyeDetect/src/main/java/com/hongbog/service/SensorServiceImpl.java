@@ -1,58 +1,308 @@
 package com.hongbog.service;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.hongbog.dao.SensorDao;
 import com.hongbog.dto.SensorDto;
 
 @Service("sensorService")
 public class SensorServiceImpl implements SensorService{
-    Logger log = Logger.getLogger(this.getClass());
+	
+    private Logger log = Logger.getLogger(this.getClass());
      
+    private interface Constant{
+		
+		String FOLDER_NAME = "hongbog";
+		
+		String EXT_NAME = "PNG";
+		
+	}
+    
     @Resource(name="sensorDao")
     private SensorDao sensorDao;
-    
-    @Override
-	public void insertSensor(SensorDto sensorDto){
-		sensorDao.insertSensor(sensorDto);
-	}
-
-	@Override
-	public List<SensorDto> selectSensorList() {
-		return sensorDao.selectSensorList();
-	}
 
 	@Override
 	public void deleteAllFromSensor() {
+		
 		sensorDao.deleteAllFromSensor();
+		
 	}
 
 	@Override
 	public void deleteFromSensorWhereId(String id) {
+		
 		sensorDao.deleteFromSensorWhereId(id);
+		
+	}
+
+	private byte[] fileToByteArray(File file){
+		
+		BufferedImage bufferedImage;
+		
+		byte[] imageBytes = null;
+		
+		try {
+			
+			bufferedImage = ImageIO.read(file);
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			
+			ImageIO.write(bufferedImage, "png", baos);
+			
+			imageBytes = baos.toByteArray();
+		
+		} catch (IOException e) {
+		
+			e.printStackTrace();
+		
+		}
+		
+		return imageBytes;
+	}
+	
+	@Override
+	public String getJsonArrayByLabel(SensorDto sensor) {
+
+		Gson gson = new Gson();
+	    		
+	    List<SensorDto> sensors = sensorDao.selectSensorsByDataTypeAndLabel(sensor);
+	    
+	    sensors = convertForUse(sensors);
+	    
+	    String sensorsJson = gson.toJson(sensors);
+		
+		return sensorsJson;
+	}
+	
+	private List<SensorDto> convertForUse(List<SensorDto> sensors){
+		
+		sensors = convertImageByteArrayFromSensors(sensors);
+	    
+	    sensors = convertExtraDataToJson(sensors);
+	    
+	    return sensors;
+		
+	}
+		
+	private List<SensorDto> convertImageByteArrayFromSensors(List<SensorDto> sensors) {
+		
+		for(SensorDto sensorTmp : sensors) {
+			
+			String imageSavePath = sensorTmp.getImageSavePath();
+
+			File file = new File(imageSavePath);
+			
+			byte[] imageBytes = fileToByteArray(file);
+			
+			if(imageBytes == null) continue;
+			
+			sensorTmp.setImageByteArray(imageBytes);
+			
+			sensorTmp.setImageSavePath(null);
+			
+		}
+		
+		return sensors;	
+	}
+	
+	private List<SensorDto> convertExtraDataToJson(List<SensorDto> sensors) {
+		
+		for(SensorDto sensorTmp : sensors) {
+			
+			String extraData = sensorTmp.getExtraData();
+			
+			if(extraData == null) continue;
+	
+			JsonParser jsonParser = new JsonParser();
+
+			JsonObject jo = (JsonObject)jsonParser.parse(extraData);
+			
+			sensorTmp.setExtraDataJsonObject(jo);
+			
+			sensorTmp.setExtraData(null);
+			
+		}
+		
+		return sensors;	
 	}
 
 	@Override
-	public SensorDto selectSensorFromId(String id) {
-		return sensorDao.selectSensorFromId(id);
+	public List<SensorDto> searchSensorByAttr(SensorDto sensor) {
+
+		List<SensorDto> sensors = sensorDao.selectSensorsByDataTypeAndLabel(sensor);
+		
+		List<SensorDto> convertSensors = convertEncodedImage(sensors);
+		
+		return convertSensors;
+	}
+
+	@Override
+	public List<SensorDto> getSensorViewData() {
+
+		List<SensorDto> sensors = convertEncodedImage(sensorDao.selectSensorList());
+		
+		return sensors;
+	}
+	
+	private List<SensorDto> convertEncodedImage(List<SensorDto> sensors){
+		
+		for(SensorDto sensor : sensors) {
+			
+			String imageSavePath = sensor.getImageSavePath();
+
+			if(imageSavePath == null) continue;
+			
+			File file = new File(imageSavePath);
+			
+			byte[] imageBytes = fileToByteArray(file);
+			
+			if(imageBytes == null) continue;
+			
+			String encodedImage = encodeToString(imageBytes);
+			
+			sensor.setEncodedImage(encodedImage);
+			
+		}
+		
+		return sensors;
+	}
+	
+	private String encodeToString(byte[] bytes) {
+		
+		Base64.Encoder encode = Base64.getEncoder();
+		
+		return encode.encodeToString(bytes);
+	}
+
+	@Override
+	public List<SensorDto> selectUniqueSensorDataTypeAndLabel() {
+
+		List<String> dataTypes = sensorDao.selectUniqueSensorDataType();
+		
+		List<String> labels = sensorDao.selectUniqueSensorLabel();
+		
+		List<SensorDto> sensors = new ArrayList<>();
+		
+		Iterator<String> dataTypeItr = dataTypes.iterator();
+		
+		Iterator<String> labelItr = labels.iterator();
+
+		while(dataTypeItr.hasNext() || labelItr.hasNext()) {
+			
+			SensorDto sensor = new SensorDto();
+			
+			if(dataTypeItr.hasNext()) sensor.setDataType(dataTypeItr.next());
+			
+			if(labelItr.hasNext()) sensor.setLabel(labelItr.next());
+
+			sensors.add(sensor);
+			
+		}
+			
+		return sensors;
+
+	}
+	
+	private String removeExtName(String includedExtName) {
+		
+		int idx = includedExtName.lastIndexOf(".");
+
+		includedExtName = includedExtName.substring(0, idx);
+
+		return includedExtName;
+	}
+
+	private String makePath(String fileName, String dirName, String extName) {
+		
+		String path = "C:" + File.separator + dirName;
+		
+		File file = new File(path);
+		
+		if(file.mkdirs()) log.debug(file.getAbsolutePath());
+		
+		path += (File.separator + fileName + "." + extName);
+		
+		return path;
+	}
+	
+	@Override
+	public void insertSensor(MultipartFile file, SensorDto sensor) {
+
+		if(file == null) return;
+		
+		String folderName = Constant.FOLDER_NAME + 
+				File.separator + sensor.getDataType() + File.separator + sensor.getLabel();
+		
+		String fileOriName = removeExtName(file.getOriginalFilename());
+		
+		String imageSavePath = makePath(fileOriName, folderName, Constant.EXT_NAME);
+		
+		sensor.setImageSavePath(imageSavePath);
+		
+		if(sensor != null) sensorDao.insertSensor(sensor);
+		
+		try {
+			
+			file.transferTo(new File(imageSavePath));
+			
+		} catch (IllegalStateException e) {
+			
+			e.printStackTrace();
+			
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+			
+		}
+			
+	}
+
+	@Override
+	public String getJsonArray() {
+		
+		Gson gson = new Gson();
+		
+	    List<SensorDto> sensors = sensorDao.selectSensorList();
+	    
+	    sensors = convertForUse(sensors);
+	    
+	    String sensorsJson = gson.toJson(sensors);
+		
+		return sensorsJson;
 	}
 	
 	/*public void byteToZipFile() {
@@ -137,51 +387,5 @@ public class SensorServiceImpl implements SensorService{
 		}
 	}*/
 	
-    /*@Resource(name="regionDAO")
-    private RegionDAO regionDAO;
-    
-    @Resource(name="trainDAO")
-    private TrainDAO trainDAO;
-     
-	@Override
-	public void insertTrainee(TraineeDTO map) throws Exception {
-		trainDAO.insertTrainee(map);
-	}
-
-	@Override
-	public TraineeDTO selectTrainee(Map<String, Object> map) throws Exception {
-		TraineeDTO resultMap = trainDAO.selectTrainee(map);
-		return resultMap;
-	}
-
-	@Override
-	public ArrayList<TraineeDTO> selectTrainees(Map<String, Object> map) throws Exception {
-		ArrayList<TraineeDTO> resultMap = trainDAO.selectTrainees(map);
-		return resultMap;
-	}
-
-	@Override
-	public List<Map<String, Object>> selectPrivacyInfo() {
-		List<Map<String, Object>> resultMap = trainDAO.selectPrivacyInfo();
-		return resultMap;
-	}
-
-	@Override
-	public ArrayList<Map<String, Object>> selectSurveyResponseByZipcode(Map map) throws Exception {
-		ArrayList<Map<String, Object>> resultMap = trainDAO.selectSurveyResponseByZipcode(map);
-		return resultMap;
-	}
-
-	@Override
-	public void deleteTraineeByZipcodeNo(Map<String, Object> map) {
-		trainDAO.deleteSurveyResponseByZipcodeNo(map);
-		trainDAO.deleteTraineeByZipcodeNo(map);
-	}
-
-	@Override
-	public void deleteTraineeByNo(Map<String, Object> map) {
-		trainDAO.deleteSurveyResponseByTraineeNo(map);
-		trainDAO.deleteTraineeByNo(map);
-	}*/
  
 }

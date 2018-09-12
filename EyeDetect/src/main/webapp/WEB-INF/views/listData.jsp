@@ -6,18 +6,22 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 </head>
 <body>
-<h1>
-	Hello world!  
-</h1>
-<a href="#this" class="btn" id="downloadAllImage">이미지 전체 다운로드</a>
+<h1>Hello world!</h1>
+
+<!-- <a href="#this" class="btn" id="downloadAllImage">이미지 전체 다운로드</a>
 <a href="#this" class="btn" id="downloadAllSensor">센서값 전체 다운로드</a>
-<a href="#this" class="btn" id="deleteAll">데이터 전체 삭제</a>
+<a href="#this" class="btn" id="deleteAll">데이터 전체 삭제</a> -->
+
 <div style="float:right;">
-	<input type="text" placeholder="아직 구현 안됬어용ㅠ">
-	<a href="#this" class="btn" id="">검색</a>
+   	<input type="text" id="dataTypeInput" placeholder="dataType">
+	<input type="text" id="labelInput" placeholder="label">
+	<a href="#this" class="btn" id="search">search</a>
+	<a href="#this" class="btn" id="explain">explain</a>
 </div>
+
 <br/>
 <br/>
+
 <table class="board_list" style="border:1px solid #ccc">
     <colgroup>
     	<col width="10%"/>
@@ -34,11 +38,9 @@
         <tr>	
         	<th scope="col">id</th>
             <th scope="col">image</th>
+            <th scope="col">type</th>
             <th scope="col">label</th>
-            <th scope="col">roll</th>
-            <th scope="col">pitch</th>
-            <th scope="col">yaw</th>
-            <th scope="col">br</th>
+            <th scope="col">extraData</th>
             <th scope="col">register date</th>
             <th scope="col">btn</th>
         </tr>
@@ -48,18 +50,16 @@
             <c:when test="${fn:length(sensors) > 0}">
                 <c:forEach items="${sensors}" var="sensor">
                     <tr data="sensor">
-                    	<td data="sensorId">${sensor.id}</td>
+                    	<td data="sensorId">${sensor.idx}</td>
                      	<td data="img">
-                     		<img data="${sensor.id}" src='data:image/png;base64,${sensor.encodedImage}' alt="image" />
+                     		<img width="200" data="${sensor.idx}" src='data:image/png;base64,${sensor.encodedImage}' alt="image" />
                    		</td>
+                   		<td data="dataType">${sensor.dataType}</td>
                         <td data="label">${sensor.label}</td>
-                        <td data="roll">${sensor.roll}</td>
-                        <td data="pitch">${sensor.pitch}</td>
-                        <td data="yaw">${sensor.yaw}</td>
-                        <td data="br">${sensor.br}</td>
-						<td data="registerDate">${sensor.registerDate}</td>
+                        <td data="label">${sensor.extraData}</td>
+                        <td data="registerDate">${sensor.registerDate}</td>
 						<td>
-							<input type="hidden" data="id" value="${sensor.id}">
+							<input type="hidden" data="id" value="${sensor.idx}">
 							<a href="#this" class="btn" data="downloadImage">이미지 저장</a>
 							<br/>
 							<a href="#this" class="btn" data="downloadSensor">센서값 저장</a>
@@ -81,6 +81,19 @@
     <%@ include file="/WEB-INF/include/include-body.jsp" %>
     <script type="text/javascript">
          $(document).ready(function(){
+        	 
+       	 	$("#search").on("click", function(e){ // 검색
+                e.preventDefault();
+       	 		var dataType = $("#dataTypeInput").val();
+       	 		var label = $("#labelInput").val()
+                fn_search(dataType, label);
+            });
+       	 	
+	       	$("#explain").on("click", function(e){ // inform.jsp 페이지 이동
+	            e.preventDefault();
+	   	 	    fn_goToInform();
+	        });
+        	 
             $("#deleteAll").on("click", function(e){ //데이터 전체 삭제
                 e.preventDefault();
                 fn_deleteAll();
@@ -105,15 +118,13 @@
             $("a[data='downloadSensor']").on("click", function(e){ //센서값 선택 다운로드
                 e.preventDefault();
             
-                var sensorId = $(this).parent().parent().children("[data=sensorId]").text();
+                var idx = $(this).parent().parent().children("[data=sensorId]").text();
+                var dataType = $(this).parent().parent().children("[data=dataType]").text();
                 var label = $(this).parent().parent().children("[data=label]").text();
-                var roll = $(this).parent().parent().children("[data=roll]").text();
-                var pitch = $(this).parent().parent().children("[data=pitch]").text();
-                var yaw = $(this).parent().parent().children("[data=yaw]").text();
-                var br = $(this).parent().parent().children("[data=br]").text();
+                var extraData = $(this).parent().parent().children("[data=extraData]").text();
                 var registerDate = $(this).parent().parent().children("[data=registerDate]").text();
                 
-                var SensorValue = {sensorId, label, roll, pitch, yaw, br, registerDate};
+                var SensorValue = {idx, dataType, label, extraData, registerDate};
                 
                 fn_downloadJsonTxt(SensorValue);
             });
@@ -126,6 +137,20 @@
             });
             
         });
+         
+         function fn_goToInform(dataType, label){
+         	var comSubmit = new ComSubmit();
+             comSubmit.setUrl("<c:url value='/goToInform.do' />");
+             comSubmit.submit();
+          }
+         
+         function fn_search(dataType, label){
+        	var comSubmit = new ComSubmit();
+            comSubmit.setUrl("<c:url value='/searchData.do' />");
+            comSubmit.addParam("dataType", dataType);
+            comSubmit.addParam("label", label);
+            comSubmit.submit();
+         }
          
          function fn_downloadJsonTxt(obj){
 	   		$("<a />", {
@@ -155,7 +180,7 @@
          function fn_delete(obj){
             var comSubmit = new ComSubmit();
             comSubmit.setUrl("<c:url value='/deleteDataFromId.do' />");
-            comSubmit.addParam("id", $(obj).prev().prev().prev().val());
+            comSubmit.addParam("id", $(obj).parent().children("[data=id]").val());
             comSubmit.submit();
          }
          

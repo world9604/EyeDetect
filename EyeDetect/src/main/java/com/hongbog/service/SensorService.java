@@ -3,33 +3,28 @@ package com.hongbog.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import com.hongbog.dto.SensorDto;
 
 public interface SensorService {
 	
-	public void insertSensor(SensorDto sensorDto);
-
-	public List<SensorDto> selectSensorList();
-
 	public void deleteAllFromSensor();
 	
 	public void deleteFromSensorWhereId(String id);
 
-	public SensorDto selectSensorFromId(String id);
+	public String getJsonArrayByLabel(SensorDto sensor);
 
-	/*void insertTrainee(TraineeDTO map) throws Exception;
+	public List<SensorDto> searchSensorByAttr(SensorDto sensor);
 
-	TraineeDTO selectTrainee(Map<String, Object> map) throws Exception;
+	public List<SensorDto> getSensorViewData();
 
-	ArrayList<TraineeDTO> selectTrainees(Map<String, Object> map) throws Exception;
+	public List<SensorDto> selectUniqueSensorDataTypeAndLabel();
 
-	List<Map<String, Object>> selectPrivacyInfo() throws Exception;
+	public void insertSensor(MultipartFile file, SensorDto sensor);
 
-	ArrayList<Map<String, Object>> selectSurveyResponseByZipcode(Map map) throws Exception;
-
-	void deleteTraineeByZipcodeNo(Map<String, Object> map);
-
-	void deleteTraineeByNo(Map<String, Object> map);*/
+	public String getJsonArray();
 
 }

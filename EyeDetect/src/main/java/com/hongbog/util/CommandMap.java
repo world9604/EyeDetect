@@ -1,4 +1,4 @@
-package com.hongbog.controller;
+package com.hongbog.util;
 
 import java.util.HashMap;
 import java.util.Map;

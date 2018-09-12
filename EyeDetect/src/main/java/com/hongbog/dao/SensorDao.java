@@ -1,8 +1,10 @@
 package com.hongbog.dao;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Repository;
 
@@ -24,12 +26,27 @@ public class SensorDao extends AbstractDAO{
 		delete("sensor.deleteAllFromSensor");
 	}
 	
-	public void deleteFromSensorWhereId(String id) {
-		delete("sensor.deleteFromSensorWhereId", id);
+	public void deleteFromSensorWhereId(String idx) {
+		delete("sensor.deleteFromSensorWhereId", idx);
 	}
 
-	public SensorDto selectSensorFromId(String id) {
-		return (SensorDto)selectOne("sensor.selectSensorFromId", id);
+	public SensorDto selectSensorFromId(String idx) {
+		return (SensorDto)selectOne("sensor.selectSensorFromId", idx);
+	}
+
+	public List<SensorDto> selectSensorsByDataTypeAndLabel(SensorDto sensor) {
+
+		return selectList("sensor.selectSensorsByDataTypeAndLabel", sensor);
+	}
+	
+	public List<String> selectUniqueSensorDataType() {
+
+		return selectList("sensor.selectUniqueSensorDataType");
+	}
+	
+	public List<String> selectUniqueSensorLabel() {
+
+		return selectList("sensor.selectUniqueSensorLabel");
 	}
 	
 	/*@SuppressWarnings("unchecked")

@@ -1,4 +1,4 @@
-package com.hongbog.controller;
+package com.hongbog.util;
 
 import java.util.Enumeration;
 
@@ -33,7 +33,7 @@ public class CustomMapArgumentResolver implements HandlerMethodArgumentResolver{
         while(enumeration.hasMoreElements()){
             key = (String) enumeration.nextElement();
             values = request.getParameterValues(key);
-            
+
             if(values != null){
                 commandMap.put(key, (values.length > 1) ? values:values[0] );
             }

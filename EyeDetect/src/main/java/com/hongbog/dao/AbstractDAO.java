@@ -51,7 +51,7 @@ public class AbstractDAO {
         printQueryId(queryId);
         return sqlSession.selectOne(queryId, params);
     }
-     
+    
     @SuppressWarnings("rawtypes")
     public List selectList(String queryId){
         printQueryId(queryId);

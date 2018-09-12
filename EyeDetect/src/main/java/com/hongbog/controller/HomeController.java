@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -25,12 +26,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.StringInputStream;
 import org.mybatis.spring.MyBatisSystemException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -44,16 +45,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.hongbog.dto.SensorDto;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
 import com.hongbog.service.SensorService;
-import com.mysql.fabric.xmlrpc.base.Array;
+
 
 /**
  * Handles requests for the application home page.
@@ -63,169 +57,36 @@ public class HomeController {
 	
 	private Logger log = Logger.getLogger(this.getClass());
 	
-	private static final String FOLDER_NAME = "eyeDetect";
-	private static final String EXT_NAME = "PNG";
+	private interface Constant{
+		
+		String SENSORS = "sensors";
+		
+		String LIST_DATA_PAGE = "listData";
+		
+		String INFORM_PAGE = "inform";
+		
+	}
 	
 	@Resource(name="sensorService")
 	private SensorService sensorService;
-	
-	@RequestMapping(value = "/home", method = RequestMethod.GET)
-	public String home(Locale locale, Model model) {
 		
-		Date date = new Date();
-		DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
-		
-		String formattedDate = dateFormat.format(date);
-		
-		model.addAttribute("serverTime", formattedDate );
-		
-		return "home";
-	}
-	
-	/*@RequestMapping(value = "/uploadImage.do", method = RequestMethod.POST)
-	public String uploadImage(@RequestParam("photo") MultipartFile file, 
-									 Model model) {
-		
-		try {
-			log.debug("photo byte array : " + Arrays.toString(file.getBytes()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    return "home";
-	}*/
-
-	/*@RequestMapping(value = "/uploadImage.do", method = RequestMethod.POST)
-	public String uploadImage(@ModelAttribute MultipartFile file, 
-									 Model model) {
-		
-		try {
-			log.debug("photo byte array : " + Arrays.toString(file.getBytes()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    return "home";
-	}*/
-	
-	
-	@RequestMapping(value = "/uploadImage.do", method = RequestMethod.POST)
-	public String uploadImage(@RequestParam("photo") MultipartFile file, 
-									@RequestParam("label") String label,
-									@RequestParam("roll") String roll,
-									@RequestParam("pitch") String pitch,
-									@RequestParam("yaw") String yaw,
-									@RequestParam("br") String br, Model model) {
-		
-		byte[] byteArray = null;
-		
-		try {
-			byteArray = file.getBytes();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		if(byteArray != null) {
-			log.debug("photo byte array length: " + byteArray.length);
-//			log.debug("photo byte array : " + Arrays.toString(byteArray));
-			log.debug("label : " + label);
-			log.debug("roll : " + roll);
-			log.debug("pitch : " + pitch);
-			log.debug("yaw : " + yaw);
-			log.debug("br : " + br);
-			
-			SensorDto sensorDto = new SensorDto(byteArray, label, roll, pitch, yaw, br);
-			
-			if(sensorDto != null) {
-				sensorService.insertSensor(sensorDto);
-			}
-		}
-		
-	    return "success";
-	}
-	
-	
 	@RequestMapping(value = "/uploadData.do", method = RequestMethod.POST)
 	public String uploadData(@RequestParam("photo") MultipartFile file, 
-			@RequestParam("label") String label,
-			@RequestParam("roll") String roll,
-			@RequestParam("pitch") String pitch,
-			@RequestParam("yaw") String yaw,
-			@RequestParam("br") String br, Model model) {
-				
-		if(file != null) {
-			
-			log.debug("label : " + label);
-			log.debug("roll : " + roll);
-			log.debug("pitch : " + pitch);
-			log.debug("yaw : " + yaw);
-			log.debug("br : " + br);
-			
-			String imageSavePath = makePath(file.getName(), FOLDER_NAME, EXT_NAME);
-			log.debug("imageSavePath : " + imageSavePath);
-			
-			SensorDto sensorDto = new SensorDto(imageSavePath, label, roll, pitch, yaw, br);
-			
-			if(sensorDto != null) sensorService.insertSensor(sensorDto);
-			
-			try {
-				file.transferTo(new File(imageSavePath));
-			} catch (IllegalStateException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-		}
+				SensorDto sensor) {
 		
-	    return "success";	 
+		sensorService.insertSensor(file, sensor);
+		
+	    return null;	 
 	}
-	
-	
-	private String makePath(String fileName, String dirName, String extName) {
-		
-		String path = "C:" + File.separator + dirName;
-		File file = new File(path);
-		file.mkdir();
-		
-		path += (File.separator + fileName + "." + extName);
-		return path;
-	}
-	
-	
-	/*@RequestMapping(value = "/writeImage.do", method = RequestMethod.GET)
-	public ModelAndView writeImage(Model model) {
-		
-		log.debug("mSensorDto : " + mSensorDto.getImageByteArray());
-		
-		Base64.Encoder encode = Base64.getEncoder();
-		String encodedImage = encode.encodeToString(mSensorDto.getImageByteArray());
-		
-		Map<String, String> map = new HashMap<>();
-		map.put("encodedImage", encodedImage);
-		
-		ModelAndView mv = new ModelAndView("home", map);
-		
-	    return mv;
-	}*/
-	
 	
 	@RequestMapping(value = "/showData.do", method = RequestMethod.GET)
-	public ModelAndView showData(Model model) {
+	public ModelAndView showData() {
 		
-		ArrayList<SensorDto> sensors = (ArrayList<SensorDto>)sensorService.selectSensorList();
+		List<SensorDto> sensors = sensorService.getSensorViewData();
 		
-		Base64.Encoder encode = Base64.getEncoder();
+		ModelAndView mv = new ModelAndView(Constant.LIST_DATA_PAGE);
 		
-		ArrayList<SensorDto> outputSensors = new ArrayList<>();
-		
-		for(SensorDto sensor : sensors) {
-			byte[] imageByteArray = sensor.getImageByteArray();
-			String encodedImage = encode.encodeToString(imageByteArray);
-			sensor.setEncodedImage(encodedImage);
-			outputSensors.add(sensor);
-		}
-		
-		ModelAndView mv = new ModelAndView("home");
-		mv.addObject("sensors", outputSensors);
+		mv.addObject(Constant.SENSORS, sensors);
 		
 		return mv;
 	}
@@ -250,28 +111,100 @@ public class HomeController {
 		return mv;
 	}
 	
-	@RequestMapping(value="/downloadImageFile.do", method = RequestMethod.POST)
-	public void downloadImageFile(@RequestParam("id") String id, HttpServletResponse response) throws Exception{
-	    
-		log.debug("id : " + id);
+	@RequestMapping(value = "/downloadAllJsonTree.do", method = RequestMethod.POST)
+	public void downloadAllJsonTree(HttpServletResponse response, HttpServletRequest request) {
 		
-		SensorDto sensor = sensorService.selectSensorFromId(id);
-		
-		if(sensor != null) {
-			byte[] imageByteArray = sensor.getImageByteArray();
-			
-			response.setContentType("image/png");
-			response.setContentLength(imageByteArray.length);
-		    response.setHeader("Content-Disposition", "attachment; fileName=\"" + URLEncoder.encode(sensor.getLabel() + ".PNG", "UTF-8") + "\";");
-		    response.setHeader("Content-Transfer-Encoding", "binary");
-		    response.getOutputStream().write(imageByteArray);
+		String ouputName = "sensorValues";
+		            
+		try {
 		    
-		    response.getOutputStream().flush();
-		    response.getOutputStream().close();
+			if (request.getHeader("User-Agent").indexOf("MSIE 5.5") > -1) {
+		       
+				response.setHeader("Content-Disposition", "filename=" + ouputName + ".txt" + ";");
+		   
+			} else {
+		       
+				response.setHeader("Content-Disposition", "attachment; filename=" + ouputName + ".txt" + ";");
+		    
+			}
+		    
+		    response.setHeader("Content-Transfer-Encoding", "binary");
+		    
+		    String sensorsJson = sensorService.getJsonArray();
+		    
+		    PrintWriter out = response.getWriter();
+
+		    out.write(sensorsJson);
+		    
+		    out.close();
+		    
+		} catch(Exception e) {
+			
+		    e.printStackTrace();
+		
 		}
 	}
 	
-	@RequestMapping(value="/downloadImageZipFile.do", method = RequestMethod.POST)
+	@RequestMapping(value = "/getJson.do", method = RequestMethod.GET)
+	public void getJson(HttpServletResponse response
+							, HttpServletRequest request 
+							, SensorDto sensor) {
+		
+		String sensorJsonArray = sensorService.getJsonArrayByLabel(sensor);
+		    
+		PrintWriter out;
+		
+		try {
+		
+			out = response.getWriter();
+		
+		    out.write(sensorJsonArray);
+		    
+		    out.close();
+		    
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		
+		}
+	}
+	
+	@RequestMapping(value = "/searchData.do", method = RequestMethod.POST)
+	public ModelAndView searchData(HttpServletResponse response
+							, HttpServletRequest request, SensorDto sensor) {
+		
+		List<SensorDto> sensors = sensorService.searchSensorByAttr(sensor);
+		    
+		ModelAndView mv = new ModelAndView(Constant.LIST_DATA_PAGE);
+		
+		mv.addObject(Constant.SENSORS, sensors);
+	
+		return mv;
+	}
+	
+	@RequestMapping(value = "/goToInform.do", method = RequestMethod.POST)
+	public ModelAndView goToInform(HttpServletResponse response
+							, HttpServletRequest request) {
+			
+		List<SensorDto> sensors = sensorService.selectUniqueSensorDataTypeAndLabel();
+		
+		ModelAndView mv = new ModelAndView(Constant.INFORM_PAGE);
+		
+		mv.addObject(Constant.SENSORS, sensors);
+		
+		return mv;
+	}
+	
+	@RequestMapping(value = "/fn_goToListData.do", method = RequestMethod.POST)
+	public ModelAndView fn_goToListData(HttpServletResponse response
+							, HttpServletRequest request) {
+		
+		ModelAndView mv = new ModelAndView("redirect:/showData.do");
+		
+		return mv;
+	}
+	
+	/*@RequestMapping(value="/downloadImageZipFile.do", method = RequestMethod.POST)
 	public void downloadImageZipFile(HttpServletResponse response, HttpServletRequest request) {
 		
 		String ouputName = "eyeImage";
@@ -279,11 +212,17 @@ public class HomeController {
 		ZipOutputStream zos = null;
 		            
 		try {
+			
 		    if (request.getHeader("User-Agent").indexOf("MSIE 5.5") > -1) {
-		        response.setHeader("Content-Disposition", "filename=" + ouputName + ".zip" + ";");
+		        
+		    	response.setHeader("Content-Disposition", "filename=" + ouputName + ".zip" + ";");
+		    
 		    } else {
-		        response.setHeader("Content-Disposition", "attachment; filename=" + ouputName + ".zip" + ";");
+		        
+		    	response.setHeader("Content-Disposition", "attachment; filename=" + ouputName + ".zip" + ";");
+		    
 		    }
+		    
 		    response.setHeader("Content-Transfer-Encoding", "binary");
 
 		    OutputStream os = response.getOutputStream();
@@ -298,10 +237,13 @@ public class HomeController {
 		    for(SensorDto sensor : sensors){
 
 		    	byte[] imageByteArray = sensor.getImageByteArray();
+		    	
 		    	String entryName = URLEncoder.encode(sensor.getId() + "_" + sensor.getLabel() + ".PNG", "UTF-8");
 		    	
 		        bis = new BufferedInputStream(new ByteArrayInputStream(imageByteArray));
+		        
 		        ZipEntry zentry = new ZipEntry(entryName);
+		        
 		        zos.putNextEntry(zentry);
 		        
 		        int bufferSize = imageByteArray.length;
@@ -311,17 +253,23 @@ public class HomeController {
 		        int cnt = 0;
 		        
 		        while ((cnt = bis.read(buffer, 0, bufferSize)) != -1) {
+		        
 		            zos.write(buffer, 0, cnt);
+		        
 		        }
 		        
 		        zos.closeEntry();
+		        
 		    }
 		               
 		    zos.close();
+		    
 		    bis.close();
 		                
 		} catch(Exception e){
-		    e.printStackTrace();
+		    
+			e.printStackTrace();
+		
 		}
 	}
 	
@@ -335,10 +283,15 @@ public class HomeController {
 		try {
 		                
 		    if (request.getHeader("User-Agent").indexOf("MSIE 5.5") > -1) {
-		        response.setHeader("Content-Disposition", "filename=" + ouputName + ".zip" + ";");
+		        
+		    	response.setHeader("Content-Disposition", "filename=" + ouputName + ".zip" + ";");
+		    
 		    } else {
+		    	
 		        response.setHeader("Content-Disposition", "attachment; filename=" + ouputName + ".zip" + ";");
+		    
 		    }
+		    
 		    response.setHeader("Content-Transfer-Encoding", "binary");
 
 		    OutputStream os = response.getOutputStream();
@@ -355,11 +308,15 @@ public class HomeController {
 		    for(SensorDto sensor : sensors){
 
 		    	String sensorJson = gson.toJson(sensor);
+		    	
 		    	byte[] sensorJsonByteArray = sensorJson.getBytes("UTF8");
-		    	String entryName = URLEncoder.encode(sensor.getId() + "_" + sensor.getLabel() + ".json", "UTF-8");
+		    	
+		    	String entryName = URLEncoder.encode(sensor.getIdx() + "_" + sensor.getLabel() + ".json", "UTF-8");
 		    	
 		        bis = new BufferedInputStream(new ByteArrayInputStream(sensorJsonByteArray));
+		        
 		        ZipEntry zentry = new ZipEntry(entryName);
+		        
 		        zos.putNextEntry(zentry);
 		        
 		        int bufferSize = sensorJsonByteArray.length;
@@ -369,48 +326,22 @@ public class HomeController {
 		        int cnt = 0;
 		        
 		        while ((cnt = bis.read(buffer, 0, bufferSize)) != -1) {
+		        	
 		            zos.write(buffer, 0, cnt);
+		            
 		        }
 		        
 		        zos.closeEntry();
 		    }
 		               
 		    zos.close();
+		    
 		    bis.close();
 		                
 		} catch(Exception e){
+			
 		    e.printStackTrace();
+		    
 		}
-	}
-	
-	
-	@RequestMapping(value = "/downloadAllJsonTree.do", method = RequestMethod.POST)
-	public void downloadAllJsonTree(HttpServletResponse response, HttpServletRequest request) {
-		
-		String ouputName = "sensorValues";
-		            
-		try {
-		    if (request.getHeader("User-Agent").indexOf("MSIE 5.5") > -1) {
-		        response.setHeader("Content-Disposition", "filename=" + ouputName + ".txt" + ";");
-		    } else {
-		        response.setHeader("Content-Disposition", "attachment; filename=" + ouputName + ".txt" + ";");
-		    }
-		    response.setHeader("Content-Transfer-Encoding", "binary");
-		    
-		    Gson gson = new Gson();
-		    
-		    ArrayList<SensorDto> sensors = (ArrayList<SensorDto>)sensorService.selectSensorList();
-		    
-		    String sensorsJson = gson.toJson(sensors);
-		    
-		    PrintWriter out = response.getWriter();
-
-		    out.write(sensorsJson);
-		    
-		} catch(Exception e) {
-		    e.printStackTrace();
-		}
-	}
-	
-	
+	}*/
 }
