@@ -20,11 +20,15 @@ public interface SensorService {
 	public List<SensorDto> searchSensorByAttr(SensorDto sensor);
 
 	public List<SensorDto> getSensorViewData();
+	
+	public List<SensorDto> getSensorViewFromPage(Map pageMap);
 
 	public List<SensorDto> selectUniqueSensorDataTypeAndLabel();
 
 	public void insertSensor(MultipartFile file, SensorDto sensor);
 
 	public String getJsonArray();
+
+	public int getTotalCount();
 
 }

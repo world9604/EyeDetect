@@ -332,6 +332,13 @@
 		    <version>2.8.2</version>
 		</dependency>
 		 
+		<dependency>
+		   <artifactId>guava</artifactId>
+		   <groupId>com.google.guava</groupId>
+		   <type>jar</type>
+		   <version>14.0.1</version>
+		</dependency>
+		 
 	</dependencies>
 	
     <build>

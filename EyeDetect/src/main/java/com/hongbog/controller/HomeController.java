@@ -47,6 +47,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.hongbog.dto.SensorDto;
 import com.hongbog.service.SensorService;
+import com.hongbog.util.CommandMap;
 
 
 /**
@@ -79,14 +80,50 @@ public class HomeController {
 	    return null;	 
 	}
 	
-	@RequestMapping(value = "/showData.do", method = RequestMethod.GET)
+	/*@RequestMapping(value = "/showData.do", method = RequestMethod.GET)
 	public ModelAndView showData() {
 		
 		List<SensorDto> sensors = sensorService.getSensorViewData();
 		
+		int totalCount = sensorService.getTotalCount();
+		
 		ModelAndView mv = new ModelAndView(Constant.LIST_DATA_PAGE);
 		
 		mv.addObject(Constant.SENSORS, sensors);
+		
+		mv.addObject("totalCount", totalCount);
+		
+		return mv;
+	}*/
+	
+	@RequestMapping(value = "/showData.do")
+	public ModelAndView paging(CommandMap pageMap) {
+		
+		if(pageMap.getMap().size() == 0) {
+			
+			Map map = new HashMap<>();
+			
+			map.put("selectedPage", 1);
+			
+			map.put("dataPerPage", 7);
+			
+			map.put("startData", 0);
+			
+			pageMap.putAll(map);
+		
+		}
+		
+		List<SensorDto> sensors = sensorService.getSensorViewFromPage(pageMap.getMap());
+		
+		int totalCount = sensorService.getTotalCount();
+		
+		ModelAndView mv = new ModelAndView(Constant.LIST_DATA_PAGE);
+		
+		mv.addObject(Constant.SENSORS, sensors);
+		
+		mv.addObject("currentPage", pageMap.getMap().get("selectedPage"));
+		
+		mv.addObject("totalCount", totalCount);
 		
 		return mv;
 	}

@@ -49,6 +49,21 @@ public class SensorDao extends AbstractDAO{
 		return selectList("sensor.selectUniqueSensorLabel");
 	}
 	
+	public List<SensorDto> selectSensorListPaging(Map map) {
+
+		return selectList("sensor.selectSensorListPaging", map);
+	}
+	
+	public List<SensorDto> selectSensorListPagingFromPageByDataTypeAndLabel(Map map) {
+
+		return selectList("sensor.selectSensorListPagingFromPageByDataTypeAndLabel", map);
+	}
+
+	public int selectTotalCount() {
+		
+		return (int)selectOne("sensor.selectTotalCount");
+	}
+	
 	/*@SuppressWarnings("unchecked")
 	public List<Map<String, Object>> selectRegionList(Map<String, Object> map) {
 		return (List<Map<String, Object>>)selectList("region.selectRegionList", map);

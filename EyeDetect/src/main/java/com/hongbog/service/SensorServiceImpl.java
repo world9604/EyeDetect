@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,6 +17,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -178,6 +179,14 @@ public class SensorServiceImpl implements SensorService{
 		return sensors;
 	}
 	
+	@Override
+	public List<SensorDto> getSensorViewFromPage(Map pageMap) {
+		
+		List<SensorDto> sensors = convertEncodedImage(sensorDao.selectSensorListPaging(pageMap));
+		
+		return sensors;
+	}
+	
 	private List<SensorDto> convertEncodedImage(List<SensorDto> sensors){
 		
 		for(SensorDto sensor : sensors) {
@@ -203,9 +212,7 @@ public class SensorServiceImpl implements SensorService{
 	
 	private String encodeToString(byte[] bytes) {
 		
-		Base64.Encoder encode = Base64.getEncoder();
-		
-		return encode.encodeToString(bytes);
+		return BaseEncoding.base64().encode(bytes);
 	}
 
 	@Override
@@ -234,7 +241,6 @@ public class SensorServiceImpl implements SensorService{
 		}
 			
 		return sensors;
-
 	}
 	
 	private String removeExtName(String includedExtName) {
@@ -303,6 +309,12 @@ public class SensorServiceImpl implements SensorService{
 	    String sensorsJson = gson.toJson(sensors);
 		
 		return sensorsJson;
+	}
+
+	@Override
+	public int getTotalCount() {
+
+		return sensorDao.selectTotalCount();
 	}
 	
 	/*public void byteToZipFile() {

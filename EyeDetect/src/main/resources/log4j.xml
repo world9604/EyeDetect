@@ -15,14 +15,22 @@
         </layout>  
     </appender>
      
+     
     <!-- Application Loggers -->
-    <logger name="com" additivity="false">
+    <!-- <logger name="com" additivity="false">
         <level value="debug" />
         <appender-ref ref="console"/>
+    </logger> -->
+    
+    <logger name="com" additivity="false">
+        <level value="error" />
+        <appender-ref ref="console"/>
     </logger>
+    
+     
      
     <!-- Query Loggers -->
-    <logger name="jdbc.sqlonly" additivity="false"> 
+    <!-- <logger name="jdbc.sqlonly" additivity="false"> 
         <level value="INFO"/> 
         <appender-ref ref="console-infolog"/> 
     </logger>
@@ -30,8 +38,20 @@
     <logger name="jdbc.resultsettable" additivity="false"> 
         <level value="INFO"/> 
         <appender-ref ref="console"/> 
-    </logger> 
+    </logger> -->
+    
+     <logger name="jdbc.sqlonly" additivity="false"> 
+        <level value="error"/> 
+        <appender-ref ref="console-infolog"/> 
+    </logger>
+     
+    <logger name="jdbc.resultsettable" additivity="false"> 
+        <level value="error"/> 
+        <appender-ref ref="console"/> 
+    </logger>
  
+ 
+  
     <!-- Root Logger -->
     <root>
         <priority value="off"/>

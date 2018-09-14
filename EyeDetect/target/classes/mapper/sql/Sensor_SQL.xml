@@ -81,21 +81,75 @@
 			WHERE
 				LABEL = #{label}
 		</if>
-		<!-- <if test='(dataType != null) and (label != null)'>
-			WHERE
-				DATATYPE = #{dataType}
-			AND
-				LABEL = #{label}
-		</if>
-		<if test='(dataType != null) and (label == null)'>
-			WHERE
-				DATATYPE = #{dataType}
-		</if>
-		<if test='(dataType == null) and (label != null)'>
-			WHERE
-				LABEL = #{label}
-		</if> -->
 	</select>	
+	
+	<select id="selectSensorListPaging" parameterType="int" resultType="SensorDto">
+		 <![CDATA[
+	        SELECT 
+	        	B.IDX,
+		        B.IMAGESAVEPATH,
+		        B.DATATYPE,
+		        B.LABEL,
+		        B.EXTRADATA,
+		        DATE_FORMAT(B.REGISTERDATE, "%Y-%m-%d") REGISTERDATE
+		    FROM 
+		    	(SELECT 
+		    		IDX IDX
+		         FROM 
+		         	EYEDETECT.SENSOR
+		         ORDER BY 
+		         	REGISTERDATE ASC
+       		LIMIT ${startData}, ${dataPerPage}
+		         ) A, EYEDETECT.SENSOR B
+			WHERE 
+				A.IDX = B.IDX;
+	     ]]>
+	</select>
+	
+	<select id="selectTotalCount" resultType="int">
+		 <![CDATA[
+	        SELECT 
+				COUNT(IDX)
+			FROM 
+				EYEDETECT.SENSOR;
+	     ]]>
+	</select>
+	
+	<select id="selectSensorListPagingFromPageByDataTypeAndLabel" resultType="SensorDto">
+		 <![CDATA[
+	        SELECT 
+	        	B.IDX,
+		        B.IMAGESAVEPATH,
+		        B.DATATYPE,
+		        B.LABEL,
+		        B.EXTRADATA,
+		        DATE_FORMAT(B.REGISTERDATE, "%Y-%m-%d") REGISTERDATE
+		    FROM 
+		    	(SELECT IDX IDX
+		         FROM EYEDETECT.SENSOR
+	      ]]>
+	      
+				 <if test='(dataType != null and !dataType.equals("")) and (label != null and !label.equals(""))'>
+					WHERE
+						DATATYPE = #{dataType}
+					AND
+						LABEL = #{label}
+				</if>
+				<if test='(dataType != null and !dataType.equals("")) and (label == null or label.equals(""))'>
+					WHERE
+						DATATYPE = #{dataType}
+				</if>
+				<if test='(dataType == null or dataType.equals("")) and (label != null and !label.equals(""))'>
+					WHERE
+						LABEL = #{label}
+				</if>
+				
+		<![CDATA[
+		         ORDER BY REGISTERDATE DESC
+		         LIMIT #{page}, 20) A, EYEDETECT.SENSOR B
+			WHERE A.IDX = B.IDX;
+		]]>
+	</select>
 		
 	<insert id="insertSensor" parameterMap="SensorDtoResultMap">
 		 <![CDATA[
